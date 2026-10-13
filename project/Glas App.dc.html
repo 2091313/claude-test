@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;height:100%;background:var(--page);font-family:'Onest',system-ui,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box}
+button,input{font-family:inherit}
+a{color:var(--accent)}a:hover{color:var(--text)}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes toastIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes shrink{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes rowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+<div style="min-height:100dvh;display:flex;align-items:center;justify-content:center;background:var(--page);transition:background .3s">
+<div style="position:relative;width:{{frameW}};height:{{frameH}};border-radius:{{frameR}};box-shadow:{{frameShadow}};overflow:hidden;background:var(--bg);color:var(--text);display:flex;flex-direction:column;transition:background .3s,color .3s">
+
+<div style="flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain">
+
+<sc-if value="{{isTasks}}" hint-placeholder-val="{{true}}">
+<div style="padding:30px 20px 180px;display:flex;flex-direction:column;gap:20px">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+    <div>
+      <div style="font-size:14px;font-weight:500;color:var(--muted)">{{todayLong}}</div>
+      <h1 style="margin:4px 0 0;font-size:34px;line-height:1.1;font-weight:700;letter-spacing:-0.025em">Aufgaben</h1>
+    </div>
+    <button onClick="{{openSettings}}" aria-label="Einstellungen" style="width:48px;height:48px;border-radius:16px;border:none;background:var(--surface);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8h16"></path><path d="M4 16h16"></path><circle cx="9" cy="8" r="2.6" fill="var(--surface)"></circle><circle cx="15" cy="16" r="2.6" fill="var(--surface)"></circle></svg>
+    </button>
+  </div>
+
+  <div style="font-size:15px;font-weight:600;color:var(--muted)">{{openCountLabel}}</div>
+
+  <sc-if value="{{hasOpen}}" hint-placeholder-val="{{true}}">
+  <div style="display:flex;flex-direction:column;gap:8px;margin-top:-8px">
+    <sc-for list="{{openTasks}}" as="t" hint-placeholder-count="4">
+      <div style="display:flex;align-items:center;gap:6px;min-height:72px;padding:8px 14px 8px 8px;background:var(--surface);border-radius:20px;opacity:{{t.opacity}};transform:{{t.transform}};transition:opacity .25s ease,transform .25s ease;animation:rowIn .3s ease">
+        <button onClick="{{t.onCheck}}" aria-label="Abhaken" style="width:56px;height:56px;flex:none;border:none;background:transparent;padding:0;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--onAccent)">
+          <span style="width:30px;height:30px;border-radius:50%;border:2px solid {{t.ring}};background:{{t.fill}};display:flex;align-items:center;justify-content:center;transition:all .2s ease;transform:{{t.boxScale}}">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="opacity:{{t.checkOp}};transition:opacity .15s"><path d="M3.5 8.5l3 3 6-7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </span>
+        </button>
+        <button onClick="{{t.onEdit}}" style="flex:1;min-width:0;text-align:left;background:none;border:none;padding:8px 0;color:inherit;cursor:pointer;display:flex;flex-direction:column;gap:4px">
+          <span style="font-size:17px;font-weight:600;line-height:1.3;text-decoration:{{t.strike}};overflow-wrap:anywhere">{{t.title}}</span>
+          <span style="font-size:13.5px;color:var(--muted);display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <span>{{t.rule}}</span>
+            <sc-if value="{{t.hasDue}}" hint-placeholder-val="{{false}}"><span style="color:var(--danger);font-weight:600">· {{t.due}}</span></sc-if>
+          </span>
+        </button>
+      </div>
+    </sc-for>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{noOpen}}" hint-placeholder-val="{{false}}">
+  <div style="padding:48px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;background:var(--surface);border-radius:24px">
+    <div style="width:56px;height:56px;border-radius:50%;background:var(--accentSoft);color:var(--accent);display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 16 16" fill="none"><path d="M3.5 8.5l3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+    <div style="font-size:19px;font-weight:700">Alles erledigt</div>
+    <div style="font-size:15px;color:var(--muted);line-height:1.45;max-width:240px;text-wrap:pretty">Tippe auf +, um eine neue Aufgabe hinzuzufügen.</div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{hasUpcoming}}" hint-placeholder-val="{{false}}">
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <button onClick="{{toggleUpcoming}}" style="display:flex;align-items:center;justify-content:space-between;height:48px;padding:0 4px;border:none;background:none;color:var(--muted);font-size:15px;font-weight:600;cursor:pointer">
+      <span>Demnächst · {{upcomingCount}}</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform:{{chevron}};transition:transform .2s"><path d="M6 9l6 6 6-6"></path></svg>
+    </button>
+    <sc-if value="{{showUpcomingList}}" hint-placeholder-val="{{false}}">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <sc-for list="{{upcoming}}" as="u" hint-placeholder-count="2">
+        <button onClick="{{u.onEdit}}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px;padding:10px 18px;border:1px dashed var(--line2);border-radius:18px;background:transparent;color:var(--text);text-align:left;cursor:pointer">
+          <span style="display:flex;flex-direction:column;gap:3px;min-width:0">
+            <span style="font-size:16px;font-weight:600;overflow-wrap:anywhere">{{u.title}}</span>
+            <span style="font-size:13px;color:var(--muted)">{{u.rule}}</span>
+          </span>
+          <span style="flex:none;font-size:13.5px;font-weight:600;color:var(--muted);background:var(--surface2);padding:6px 10px;border-radius:10px">{{u.when}}</span>
+        </button>
+      </sc-for>
+    </div>
+    </sc-if>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isArchive}}" hint-placeholder-val="{{false}}">
+<div style="padding:30px 20px 140px;display:flex;flex-direction:column;gap:20px">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+    <div>
+      <div style="font-size:14px;font-weight:500;color:var(--muted)">{{archiveCountLabel}}</div>
+      <h1 style="margin:4px 0 0;font-size:34px;line-height:1.1;font-weight:700;letter-spacing:-0.025em">Archiv</h1>
+    </div>
+    <button onClick="{{openSettings}}" aria-label="Einstellungen" style="width:48px;height:48px;border-radius:16px;border:none;background:var(--surface);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8h16"></path><path d="M4 16h16"></path><circle cx="9" cy="8" r="2.6" fill="var(--surface)"></circle><circle cx="15" cy="16" r="2.6" fill="var(--surface)"></circle></svg>
+    </button>
+  </div>
+
+  <sc-for list="{{archiveGroups}}" as="g" hint-placeholder-count="2">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:14px;font-weight:700;color:var(--muted);padding:0 4px;display:flex;justify-content:space-between"><span>{{g.label}}</span><span style="font-weight:500">{{g.count}}</span></div>
+      <div style="background:var(--surface);border-radius:20px;display:flex;flex-direction:column">
+        <sc-for list="{{g.items}}" as="a" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:12px;min-height:68px;padding:10px 10px 10px 18px;border-top:{{a.border}}">
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+              <span style="font-size:16px;font-weight:600;color:var(--text);overflow-wrap:anywhere">{{a.title}}</span>
+              <span style="font-size:13px;color:var(--muted)">{{a.meta}}</span>
+            </div>
+            <button onClick="{{a.onRestore}}" aria-label="Wiederherstellen" style="flex:none;height:44px;padding:0 14px;border:none;border-radius:14px;background:var(--surface2);color:var(--text);font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"></path><path d="M4 4v4h4"></path></svg>
+              Zurück
+            </button>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-for>
+
+  <sc-if value="{{noArchive}}" hint-placeholder-val="{{false}}">
+  <div style="padding:48px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;background:var(--surface);border-radius:24px">
+    <div style="font-size:19px;font-weight:700">Noch nichts erledigt</div>
+    <div style="font-size:15px;color:var(--muted);line-height:1.45;max-width:250px;text-wrap:pretty">Abgehakte Aufgaben landen hier und lassen sich wiederherstellen.</div>
+  </div>
+  </sc-if>
+
+  <div style="font-size:13px;color:var(--muted);text-align:center;line-height:1.5;padding:0 20px">Einträge werden nach 30 Tagen automatisch gelöscht.</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isPoints}}" hint-placeholder-val="{{false}}">
+<div style="padding:30px 20px 140px;display:flex;flex-direction:column;gap:16px">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px">
+    <div>
+      <div style="font-size:14px;font-weight:500;color:var(--muted)">{{totalLabel}}</div>
+      <h1 style="margin:4px 0 0;font-size:34px;line-height:1.1;font-weight:700;letter-spacing:-0.025em">Punkte</h1>
+    </div>
+    <button onClick="{{openSettings}}" aria-label="Einstellungen" style="width:48px;height:48px;border-radius:16px;border:none;background:var(--surface);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8h16"></path><path d="M4 16h16"></path><circle cx="9" cy="8" r="2.6" fill="var(--surface)"></circle><circle cx="15" cy="16" r="2.6" fill="var(--surface)"></circle></svg>
+    </button>
+  </div>
+
+  <div style="background:var(--surface);border-radius:26px;padding:24px 20px;display:flex;flex-direction:column;align-items:center;gap:24px">
+    <div style="text-align:center;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:baseline;justify-content:center;gap:8px">
+        <span style="font-size:68px;font-weight:800;letter-spacing:-0.045em;line-height:1;font-variant-numeric:tabular-nums;color:{{bigNumColor}};transition:color .6s">{{cycle}}</span>
+        <span style="font-size:19px;color:var(--muted);font-weight:600">/ {{goalTarget}}</span>
+      </div>
+      <div style="font-size:15px;color:var(--muted);line-height:1.4;text-wrap:pretty">{{statusLine}}</div>
+    </div>
+
+    <div style="position:relative;width:124px;height:300px;margin-right:64px">
+      <div style="position:absolute;inset:0;border:3px solid var(--line2);border-top-width:0;border-radius:4px 4px 34px 34px;background:var(--surface2);overflow:hidden;box-shadow:{{glassGlow}};transition:box-shadow .8s">
+        <div style="position:absolute;left:0;right:0;bottom:0;height:{{fillH}};background:{{liquidColor}};transition:height 1.3s cubic-bezier(.3,.9,.3,1),background-color .8s">
+          <sc-if value="{{hasFill}}" hint-placeholder-val="{{false}}">
+            <div style="position:absolute;left:50%;top:-13px;width:460px;height:460px;margin-left:-230px;border-radius:43%;background:{{liquidColor}};opacity:.45;animation:spin 11s linear infinite;transition:background-color .8s"></div>
+            <div style="position:absolute;left:50%;top:-6px;width:440px;height:440px;margin-left:-220px;border-radius:41%;background:{{liquidColor}};animation:spin 7s linear infinite reverse;transition:background-color .8s"></div>
+          </sc-if>
+        </div>
+        <sc-for list="{{markers}}" as="m" hint-placeholder-count="3">
+          <div style="position:absolute;left:0;right:0;bottom:{{m.bottom}};border-top:2px dashed {{m.line}};transition:border-color .6s"></div>
+        </sc-for>
+        <div style="position:absolute;top:14px;bottom:30px;left:12px;width:9px;border-radius:6px;background:rgba(255,255,255,.28)"></div>
+      </div>
+      <sc-for list="{{markers}}" as="m" hint-placeholder-count="3">
+        <div style="position:absolute;left:calc(100% + 10px);bottom:{{m.bottom}};transform:translateY(50%);display:flex;align-items:center">
+          <span style="min-width:46px;height:28px;padding:0 10px;border-radius:14px;background:{{m.pillBg}};color:{{m.pillFg}};font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;gap:4px;transition:background .6s,color .6s">{{m.label}}</span>
+        </div>
+      </sc-for>
+      <div style="position:absolute;left:calc(100% + 10px);bottom:100%;transform:translateY(50%);display:flex;align-items:center">
+        <span style="height:28px;padding:0 10px;border-radius:14px;background:{{targetPillBg}};color:{{targetPillFg}};font-weight:700;font-size:14px;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:background .6s,color .6s">Ziel {{goalTarget}}</span>
+      </div>
+    </div>
+
+    <sc-if value="{{goalDone}}" hint-placeholder-val="{{false}}">
+      <button onClick="{{openGoal}}" style="width:100%;height:56px;border:none;border-radius:18px;background:var(--gold);color:var(--goldInk);font-size:17px;font-weight:700;cursor:pointer">Neues Ziel festlegen</button>
+    </sc-if>
+    <sc-if value="{{goalNotDone}}" hint-placeholder-val="{{true}}">
+      <button onClick="{{openGoal}}" style="width:100%;height:52px;border:none;border-radius:16px;background:var(--surface2);color:var(--text);font-size:16px;font-weight:600;cursor:pointer">Ziele bearbeiten</button>
+    </sc-if>
+  </div>
+
+  <div style="background:var(--surface);border-radius:26px;padding:20px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-size:14px;color:var(--muted);font-weight:600">Streak</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px">
+          <span style="font-size:44px;font-weight:800;letter-spacing:-0.03em;line-height:1;font-variant-numeric:tabular-nums">{{streak}}</span>
+          <span style="font-size:16px;color:var(--muted);font-weight:600">{{streakUnit}}</span>
+        </div>
+      </div>
+      <sc-if value="{{todayDone}}" hint-placeholder-val="{{false}}">
+        <span style="height:30px;padding:0 12px;border-radius:15px;background:var(--accentSoft);color:var(--accent);font-size:13.5px;font-weight:700;display:flex;align-items:center">Heute geschafft</span>
+      </sc-if>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px">
+      <sc-for list="{{week}}" as="d" hint-placeholder-count="7">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div style="width:100%;aspect-ratio:1;max-width:38px;border-radius:12px;background:{{d.bg}};border:{{d.border}};transition:background .3s"></div>
+          <span style="font-size:12px;font-weight:600;color:{{d.fg}}">{{d.label}}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="font-size:14px;color:var(--muted);line-height:1.45;text-wrap:pretty">{{streakHint}}</div>
+  </div>
+</div>
+</sc-if>
+
+</div>
+
+<sc-if value="{{isTasks}}" hint-placeholder-val="{{true}}">
+  <button onClick="{{openAdd}}" aria-label="Neue Aufgabe" style="position:absolute;right:20px;bottom:{{fabBottom}};z-index:20;width:66px;height:66px;border-radius:22px;border:none;background:var(--accent);color:var(--onAccent);box-shadow:0 10px 24px -6px var(--accentShadow);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:bottom .25s ease,transform .15s" style-active="transform:scale(.94)">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+  </button>
+</sc-if>
+
+<sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+  <div style="position:absolute;left:14px;right:14px;bottom:96px;z-index:30;background:var(--toast);color:var(--toastText);border-radius:18px;overflow:hidden;box-shadow:0 12px 30px -10px rgba(0,0,0,.35);animation:toastIn .25s ease">
+    <div style="display:flex;align-items:center;gap:10px;min-height:60px;padding:8px 8px 8px 18px">
+      <span style="flex:1;font-size:15px;font-weight:600;line-height:1.35">{{toastMsg}}</span>
+      <sc-if value="{{toastHasUndo}}" hint-placeholder-val="{{false}}">
+        <button onClick="{{undo}}" style="flex:none;height:44px;padding:0 16px;border:none;border-radius:12px;background:var(--toastBtn);color:var(--toastText);font-size:15px;font-weight:700;cursor:pointer">Rückgängig</button>
+      </sc-if>
+    </div>
+    {{ toastBar }}
+  </div>
+</sc-if>
+
+<nav style="flex:none;display:grid;grid-template-columns:repeat(3,1fr);padding:6px 10px {{navPadBottom}};background:var(--surface);border-top:1px solid var(--line);z-index:25">
+  <button onClick="{{goTasks}}" style="height:64px;border:none;background:none;color:{{navTasksFg}};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-size:12.5px;font-weight:600">
+    <span style="width:56px;height:32px;border-radius:16px;background:{{navTasksBg}};display:flex;align-items:center;justify-content:center;transition:background .2s"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"></rect><path d="M8 12.2l2.8 2.8 5.4-5.5"></path></svg></span>
+    Aufgaben
+  </button>
+  <button onClick="{{goArchive}}" style="height:64px;border:none;background:none;color:{{navArchiveFg}};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-size:12.5px;font-weight:600">
+    <span style="width:56px;height:32px;border-radius:16px;background:{{navArchiveBg}};display:flex;align-items:center;justify-content:center;transition:background .2s"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1.5"></rect><path d="M5 9v9.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V9"></path><path d="M10 13h4"></path></svg></span>
+    Archiv
+  </button>
+  <button onClick="{{goPoints}}" style="height:64px;border:none;background:none;color:{{navPointsFg}};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-size:12.5px;font-weight:600">
+    <span style="width:56px;height:32px;border-radius:16px;background:{{navPointsBg}};display:flex;align-items:center;justify-content:center;transition:background .2s"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12l-1.4 15.2a2 2 0 0 1-2 1.8H9.4a2 2 0 0 1-2-1.8z"></path><path d="M7 11.5h10"></path></svg></span>
+    Punkte
+  </button>
+</nav>
+
+<sc-if value="{{sheetTask}}" hint-placeholder-val="{{false}}">
+<div onClick="{{closeSheet}}" style="position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;animation:fadeIn .2s ease">
+  <div onClick="{{stop}}" style="width:100%;max-height:94%;overflow-y:auto;background:var(--surface);border-radius:28px 28px 0 0;padding:10px 20px 28px;animation:sheetUp .32s cubic-bezier(.2,.9,.3,1);display:flex;flex-direction:column;gap:20px">
+    <div style="width:40px;height:5px;border-radius:3px;background:var(--line2);align-self:center"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <h2 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.015em">{{formHeading}}</h2>
+      <button onClick="{{closeSheet}}" style="height:44px;padding:0 6px;border:none;background:none;color:var(--muted);font-size:16px;font-weight:600;cursor:pointer">Abbrechen</button>
+    </div>
+    <input ref="{{titleRef}}" value="{{form.title}}" onChange="{{onTitle}}" onKeyDown="{{onTitleKey}}" placeholder="Was steht an?" maxlength="80" style="height:58px;width:100%;padding:0 18px;border:2px solid transparent;border-radius:16px;background:var(--surface2);color:var(--text);font-size:18px;font-weight:500;outline:none" style-focus="border-color:var(--accent)">
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:14px;font-weight:600;color:var(--muted)">Art</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:var(--surface2);border-radius:16px">
+        <sc-for list="{{modeOpts}}" as="o" hint-placeholder-count="2">
+          <button onClick="{{o.onClick}}" style="height:46px;border:none;border-radius:12px;background:{{o.bg}};color:{{o.fg}};box-shadow:{{o.sh}};font-size:15.5px;font-weight:600;cursor:pointer;transition:background .15s">{{o.label}}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <sc-if value="{{isRepeat}}" hint-placeholder-val="{{false}}">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:14px;font-weight:600;color:var(--muted)">Wiederholung</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;background:var(--surface2);border-radius:16px">
+        <sc-for list="{{freqOpts}}" as="o" hint-placeholder-count="3">
+          <button onClick="{{o.onClick}}" style="height:46px;border:none;border-radius:12px;background:{{o.bg}};color:{{o.fg}};box-shadow:{{o.sh}};font-size:14.5px;font-weight:600;cursor:pointer">{{o.label}}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{isWeekly}}" hint-placeholder-val="{{false}}">
+        <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:4px">
+          <sc-for list="{{weekdayOpts}}" as="w" hint-placeholder-count="7">
+            <button onClick="{{w.onClick}}" style="height:48px;border:none;border-radius:14px;background:{{w.bg}};color:{{w.fg}};font-size:14.5px;font-weight:700;cursor:pointer;padding:0">{{w.label}}</button>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{isInterval}}" hint-placeholder-val="{{false}}">
+        <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:4px;font-size:17px;font-weight:600">
+          <span>Alle</span>
+          <button onClick="{{intervalDown}}" aria-label="Weniger" style="width:52px;height:52px;border:none;border-radius:16px;background:var(--surface2);color:var(--text);font-size:24px;cursor:pointer">−</button>
+          <input type="number" min="1" max="365" value="{{form.interval}}" onChange="{{onInterval}}" style="width:76px;height:52px;border:2px solid transparent;border-radius:16px;background:var(--surface2);color:var(--text);text-align:center;font-size:22px;font-weight:700;outline:none" style-focus="border-color:var(--accent)">
+          <button onClick="{{intervalUp}}" aria-label="Mehr" style="width:52px;height:52px;border:none;border-radius:16px;background:var(--surface2);color:var(--text);font-size:24px;cursor:pointer">+</button>
+          <span>{{intervalUnit}}</span>
+        </div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+    <div style="font-size:14px;color:var(--muted);line-height:1.45">{{previewLine}}</div>
+
+    <div style="display:flex;gap:10px">
+      <sc-if value="{{isEdit}}" hint-placeholder-val="{{false}}">
+        <button onClick="{{deleteTask}}" style="flex:none;height:58px;padding:0 20px;border:none;border-radius:18px;background:var(--dangerSoft);color:var(--danger);font-size:16px;font-weight:700;cursor:pointer">Löschen</button>
+      </sc-if>
+      <button onClick="{{saveTask}}" style="flex:1;height:58px;border:none;border-radius:18px;background:var(--accent);color:var(--onAccent);font-size:17px;font-weight:700;cursor:pointer;opacity:{{saveOpacity}};transition:opacity .15s">{{saveLabel}}</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{sheetGoal}}" hint-placeholder-val="{{false}}">
+<div onClick="{{closeSheet}}" style="position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;animation:fadeIn .2s ease">
+  <div onClick="{{stop}}" style="width:100%;max-height:94%;overflow-y:auto;background:var(--surface);border-radius:28px 28px 0 0;padding:10px 20px 28px;animation:sheetUp .32s cubic-bezier(.2,.9,.3,1);display:flex;flex-direction:column;gap:22px">
+    <div style="width:40px;height:5px;border-radius:3px;background:var(--line2);align-self:center"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <h2 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.015em">{{goalHeading}}</h2>
+      <button onClick="{{closeSheet}}" style="height:44px;padding:0 6px;border:none;background:none;color:var(--muted);font-size:16px;font-weight:600;cursor:pointer">Abbrechen</button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:14px;font-weight:600;color:var(--muted)">Endziel – volles Glas</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button onClick="{{targetDown}}" aria-label="Weniger" style="width:58px;height:58px;flex:none;border:none;border-radius:16px;background:var(--surface2);color:var(--text);font-size:24px;cursor:pointer">−</button>
+        <input type="number" min="1" value="{{gf.target}}" onChange="{{onTarget}}" style="flex:1;min-width:0;height:58px;border:2px solid transparent;border-radius:16px;background:var(--surface2);color:var(--text);text-align:center;font-size:26px;font-weight:800;outline:none" style-focus="border-color:var(--accent)">
+        <button onClick="{{targetUp}}" aria-label="Mehr" style="width:58px;height:58px;flex:none;border:none;border-radius:16px;background:var(--surface2);color:var(--text);font-size:24px;cursor:pointer">+</button>
+      </div>
+      <div style="font-size:13px;color:var(--muted);text-align:center">Punkte · Schritte von 5</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:14px;font-weight:600;color:var(--muted)">Zwischenziele</div>
+        <button onClick="{{evenMs}}" style="height:36px;padding:0 12px;border:none;border-radius:10px;background:var(--accentSoft);color:var(--accent);font-size:13.5px;font-weight:700;cursor:pointer">¼ · ½ · ¾ setzen</button>
+      </div>
+      <sc-if value="{{hasMs}}" hint-placeholder-val="{{true}}">
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <sc-for list="{{msChips}}" as="c" hint-placeholder-count="3">
+          <button onClick="{{c.onRemove}}" aria-label="Entfernen" style="height:44px;padding:0 10px 0 16px;border:none;border-radius:22px;background:var(--surface2);color:var(--text);font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;cursor:pointer">
+            {{c.label}}
+            <span style="width:24px;height:24px;border-radius:50%;background:var(--line2);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--text)">×</span>
+          </button>
+        </sc-for>
+      </div>
+      </sc-if>
+      <sc-if value="{{noMs}}" hint-placeholder-val="{{false}}">
+        <div style="font-size:14px;color:var(--muted)">Keine Zwischenziele – optional.</div>
+      </sc-if>
+      <div style="display:flex;gap:8px">
+        <input type="number" min="1" value="{{gf.add}}" onChange="{{onMsInput}}" onKeyDown="{{onMsKey}}" placeholder="z. B. 40" style="flex:1;min-width:0;height:52px;padding:0 16px;border:2px solid transparent;border-radius:16px;background:var(--surface2);color:var(--text);font-size:17px;font-weight:600;outline:none" style-focus="border-color:var(--accent)">
+        <button onClick="{{addMs}}" style="flex:none;height:52px;padding:0 18px;border:none;border-radius:16px;background:var(--text);color:var(--bg);font-size:15px;font-weight:700;cursor:pointer">Hinzufügen</button>
+      </div>
+      <sc-if value="{{gfHasErr}}" hint-placeholder-val="{{false}}">
+        <div style="font-size:14px;color:var(--danger);font-weight:600">{{gf.err}}</div>
+      </sc-if>
+    </div>
+
+    <button onClick="{{saveGoal}}" style="height:58px;border:none;border-radius:18px;background:var(--accent);color:var(--onAccent);font-size:17px;font-weight:700;cursor:pointer">{{goalSaveLabel}}</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{sheetSettings}}" hint-placeholder-val="{{false}}">
+<div onClick="{{closeSheet}}" style="position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;animation:fadeIn .2s ease">
+  <div onClick="{{stop}}" style="width:100%;max-height:94%;overflow-y:auto;background:var(--surface);border-radius:28px 28px 0 0;padding:10px 20px 28px;animation:sheetUp .32s cubic-bezier(.2,.9,.3,1);display:flex;flex-direction:column;gap:22px">
+    <div style="width:40px;height:5px;border-radius:3px;background:var(--line2);align-self:center"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <h2 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.015em">Einstellungen</h2>
+      <button onClick="{{closeSheet}}" style="height:44px;padding:0 6px;border:none;background:none;color:var(--accent);font-size:16px;font-weight:700;cursor:pointer">Fertig</button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:14px;font-weight:600;color:var(--muted)">Darstellung</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;background:var(--surface2);border-radius:16px">
+        <sc-for list="{{themeOpts}}" as="o" hint-placeholder-count="3">
+          <button onClick="{{o.onClick}}" style="height:46px;border:none;border-radius:12px;background:{{o.bg}};color:{{o.fg}};box-shadow:{{o.sh}};font-size:15px;font-weight:600;cursor:pointer">{{o.label}}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:18px;background:var(--surface2)">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+        <span style="font-size:15px;font-weight:700">Testmodus</span>
+        <span style="font-size:14px;font-weight:600;color:var(--muted)">{{simDate}}</span>
+      </div>
+      <div style="font-size:13.5px;color:var(--muted);line-height:1.45;text-wrap:pretty">Zeit vorspulen, um Wiederholungen, Streak und das automatische Löschen nach 30 Tagen auszuprobieren.</div>
+      <div style="display:flex;gap:8px">
+        <button onClick="{{dayForward}}" style="flex:1;height:48px;border:none;border-radius:14px;background:var(--surface);color:var(--text);font-size:15px;font-weight:700;cursor:pointer">+1 Tag</button>
+        <button onClick="{{dayForward2}}" style="flex:1;height:48px;border:none;border-radius:14px;background:var(--surface);color:var(--text);font-size:15px;font-weight:700;cursor:pointer">+2 Tage</button>
+        <sc-if value="{{offsetActive}}" hint-placeholder-val="{{false}}">
+          <button onClick="{{dayReset}}" style="flex:1;height:48px;border:none;border-radius:14px;background:var(--surface);color:var(--accent);font-size:15px;font-weight:700;cursor:pointer">Heute</button>
+        </sc-if>
+      </div>
+    </div>
+
+    <button onClick="{{resetAll}}" style="height:54px;border:none;border-radius:16px;background:var(--dangerSoft);color:var(--danger);font-size:16px;font-weight:700;cursor:pointer">{{resetLabel}}</button>
+    <div style="font-size:13px;color:var(--muted);text-align:center;line-height:1.5">Alle Daten werden nur lokal auf diesem Gerät gespeichert.</div>
+  </div>
+</div>
+</sc-if>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;undoSeconds&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[3,5,8],&quot;default&quot;:5,&quot;tsType&quot;:&quot;number&quot;},&quot;liquidHue&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0,&quot;max&quot;:360,&quot;step&quot;:5,&quot;default&quot;:240,&quot;tsType&quot;:&quot;number&quot;}}">
+const KEY = 'glas-app-v1';
+const DAY = 86400000;
+const WD = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+const WDL = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+const MON = ['Jan.','Feb.','März','Apr.','Mai','Juni','Juli','Aug.','Sep.','Okt.','Nov.','Dez.'];
+const MONL = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const parseD = s => { const p = s.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); };
+const addDays = (s, n) => { const d = parseD(s); d.setDate(d.getDate() + n); return ymd(d); };
+const diffDays = (a, b) => Math.round((parseD(a) - parseD(b)) / DAY);
+const dowOf = s => parseD(s).getDay();
+const firstDue = (r, today) => r.type === 'weekly' ? addDays(today, (r.weekday - dowOf(today) + 7) % 7) : today;
+const nextDue = (r, today) => r.type === 'daily' ? addDays(today, 1)
+  : r.type === 'interval' ? addDays(today, Math.max(1, r.interval))
+  : r.type === 'weekly' ? addDays(today, ((r.weekday - dowOf(today) + 7) % 7) || 7) : today;
+const ruleLabel = r => r.type === 'once' ? 'Einmalig' : r.type === 'daily' ? 'Täglich'
+  : r.type === 'weekly' ? 'Jeden ' + WDL[r.weekday] : (r.interval === 1 ? 'Täglich' : 'Alle ' + r.interval + ' Tage');
+const shortDate = s => { const d = parseD(s); return WD[d.getDay()] + ', ' + d.getDate() + '. ' + MON[d.getMonth()]; };
+const longDate = s => { const d = parseD(s); return WDL[d.getDay()] + ', ' + d.getDate() + '. ' + MONL[d.getMonth()]; };
+
+const THEMES = {
+  light: { page:'#e6e4df', frame:'#1c1b19', bg:'#f6f5f2', surface:'#ffffff', surface2:'#efeee9', text:'#1c1b19', muted:'#6b6862', line:'rgba(28,27,25,.07)', line2:'rgba(28,27,25,.2)', onAccent:'#ffffff', gold:'oklch(0.8 0.14 82)', goldInk:'#3b2a00', danger:'oklch(0.55 0.19 27)', dangerSoft:'oklch(0.55 0.19 27 / .1)', toast:'#1c1b19', toastText:'#f6f5f2', toastBtn:'rgba(255,255,255,.14)' },
+  dark: { page:'#050505', frame:'#2b2a28', bg:'#121211', surface:'#1d1c1b', surface2:'#292826', text:'#f3f2ef', muted:'#a19e97', line:'rgba(255,255,255,.07)', line2:'rgba(255,255,255,.22)', onAccent:'#0b1522', gold:'oklch(0.82 0.14 82)', goldInk:'#3b2a00', danger:'oklch(0.7 0.17 27)', dangerSoft:'oklch(0.7 0.17 27 / .14)', toast:'#f3f2ef', toastText:'#121211', toastBtn:'rgba(0,0,0,.08)' }
+};
+
+class Component extends DCLogic {
+  state = this.initState();
+  titleRef = React.createRef();
+
+  initState() {
+    let d = null;
+    try { d = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+    if (!d || !Array.isArray(d.tasks)) d = this.defaults();
+    this.applyTheme(d.theme);
+    return Object.assign(d, { tab: 'tasks', sheet: null, form: null, gf: null, toast: null, checking: {}, confirmReset: false, showUpcoming: true, glassReady: false, vw: window.innerWidth, vh: window.innerHeight });
+  }
+
+  defaults() {
+    const t = ymd(new Date()), dow = new Date().getDay();
+    const mk = (id, title, r, c) => Object.assign({ id, title, createdAt: c, dueDate: firstDue(r, t) }, r);
+    return {
+      tasks: [
+        mk('t1', '10 Minuten lesen', { type: 'daily', weekday: dow, interval: 2 }, 1),
+        mk('t2', 'Pflanzen gießen', { type: 'interval', weekday: dow, interval: 3 }, 2),
+        mk('t3', 'Zahnarzttermin vereinbaren', { type: 'once', weekday: dow, interval: 2 }, 3),
+        mk('t4', 'Wäsche waschen', { type: 'weekly', weekday: 6, interval: 2 }, 4)
+      ],
+      archive: [], points: 0, days: {}, theme: 'light', dayOffset: 0, nextId: 10,
+      goal: { target: 100, milestones: [25, 50, 75], base: 0 }
+    };
+  }
+
+  now() { return new Date(Date.now() + ((this.state && this.state.dayOffset) || 0) * DAY); }
+  today() { return ymd(this.now()); }
+  undoMs() { return (Number(this.props.undoSeconds) || 5) * 1000; }
+
+  applyTheme(th) {
+    const dark = th === 'dark' || (th === 'system' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+    this.dark = dark;
+    const hue = Number((this.props && this.props.liquidHue) ?? 240);
+    const v = Object.assign({}, dark ? THEMES.dark : THEMES.light, {
+      accent: dark ? `oklch(0.74 0.12 ${hue})` : `oklch(0.56 0.14 ${hue})`,
+      accentSoft: dark ? `oklch(0.74 0.12 ${hue} / .16)` : `oklch(0.56 0.14 ${hue} / .11)`,
+      accentShadow: `oklch(0.56 0.14 ${hue} / .55)`,
+      liquid: `oklch(0.68 0.13 ${hue})`
+    });
+    const s = document.documentElement.style;
+    Object.keys(v).forEach(k => s.setProperty('--' + k, v[k]));
+    s.colorScheme = dark ? 'dark' : 'light';
+  }
+
+  componentDidMount() {
+    this.purge();
+    this.onResize = () => this.setState({ vw: window.innerWidth, vh: window.innerHeight });
+    window.addEventListener('resize', this.onResize);
+    this.mq = window.matchMedia('(prefers-color-scheme: dark)');
+    this.mqH = () => { if (this.state.theme === 'system') { this.applyTheme('system'); this.forceUpdate(); } };
+    this.mq.addEventListener && this.mq.addEventListener('change', this.mqH);
+    this.tick = setInterval(() => { this.purge(); this.forceUpdate(); }, 60000);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize);
+    this.mq.removeEventListener && this.mq.removeEventListener('change', this.mqH);
+    clearInterval(this.tick); clearTimeout(this.toastT);
+  }
+  componentDidUpdate(pp, ps) {
+    const P = ['tasks', 'archive', 'points', 'goal', 'days', 'theme', 'dayOffset', 'nextId'];
+    if (P.some(k => ps[k] !== this.state[k])) {
+      const o = {}; P.forEach(k => o[k] = this.state[k]);
+      try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {}
+    }
+    if (ps.theme !== this.state.theme || pp.liquidHue !== this.props.liquidHue) this.applyTheme(this.state.theme);
+    if (ps.dayOffset !== this.state.dayOffset) this.purge();
+    if (this.state.sheet === 'task' && ps.sheet !== 'task' && !this.state.form.editId)
+      setTimeout(() => this.titleRef.current && this.titleRef.current.focus(), 330);
+  }
+
+  purge() {
+    const t = this.today();
+    const a = this.state.archive.filter(e => diffDays(t, e.day) < 30);
+    if (a.length !== this.state.archive.length) this.setState({ archive: a });
+  }
+
+  showToast(msg, undoId) {
+    clearTimeout(this.toastT);
+    const key = Date.now() + Math.random();
+    this.setState({ toast: { msg, undoId: undoId || null, key } });
+    this.toastT = setTimeout(() => this.setState(s => (s.toast && s.toast.key === key ? { toast: null } : null)), undoId ? this.undoMs() : 2800);
+  }
+
+  check(id) {
+    if (this.state.checking[id]) return;
+    this.setState(s => ({ checking: Object.assign({}, s.checking, { [id]: true }) }));
+    setTimeout(() => this.complete(id), 300);
+  }
+
+  complete(id) {
+    const s = this.state;
+    const checking = Object.assign({}, s.checking); delete checking[id];
+    const task = s.tasks.find(t => t.id === id);
+    if (!task) { this.setState({ checking }); return; }
+    const today = this.today();
+    const entry = { id: 'a' + s.nextId, taskId: task.id, title: task.title, type: task.type, weekday: task.weekday, interval: task.interval, createdAt: task.createdAt, prevDue: task.dueDate, completedAt: this.now().toISOString(), day: today };
+    const tasks = task.type === 'once' ? s.tasks.filter(t => t.id !== id) : s.tasks.map(t => t.id === id ? Object.assign({}, t, { dueDate: nextDue(t, today) }) : t);
+    const days = Object.assign({}, s.days, { [today]: (s.days[today] || 0) + 1 });
+    const before = s.points - s.goal.base, after = before + 1;
+    let msg = 'Erledigt · +1 Punkt';
+    if (before < s.goal.target && after >= s.goal.target) msg = 'Endziel erreicht – das Glas ist voll!';
+    else { const m = s.goal.milestones.find(m => before < m && after >= m); if (m) msg = 'Zwischenziel ' + m + ' erreicht!'; }
+    this.setState({ tasks, archive: [entry].concat(s.archive), points: s.points + 1, days, nextId: s.nextId + 1, checking });
+    this.showToast(msg, entry.id);
+  }
+
+  revert(entryId, fromArchive) {
+    const s = this.state;
+    const e = s.archive.find(x => x.id === entryId);
+    if (!e) return;
+    const today = this.today();
+    const due = fromArchive && e.type !== 'once' ? today : e.prevDue;
+    const ex = s.tasks.find(t => t.id === e.taskId);
+    const tasks = ex
+      ? s.tasks.map(t => t.id === e.taskId ? Object.assign({}, t, { dueDate: due < t.dueDate ? due : t.dueDate }) : t)
+      : s.tasks.concat([{ id: e.taskId, title: e.title, type: e.type, weekday: e.weekday, interval: e.interval, createdAt: e.createdAt, dueDate: due }]);
+    const days = Object.assign({}, s.days);
+    if (days[e.day]) { days[e.day]--; if (!days[e.day]) delete days[e.day]; }
+    this.setState({ tasks, archive: s.archive.filter(x => x.id !== entryId), points: Math.max(0, s.points - 1), days });
+    if (fromArchive) this.showToast('„' + e.title + '“ wiederhergestellt · −1 Punkt');
+    else { clearTimeout(this.toastT); this.setState({ toast: null }); }
+  }
+
+  openAdd() { this.setState({ sheet: 'task', form: { editId: null, title: '', mode: 'once', freq: 'daily', weekday: dowOf(this.today()), interval: 2 } }); }
+  openEdit(t) {
+    this.setState({ sheet: 'task', form: { editId: t.id, title: t.title, mode: t.type === 'once' ? 'once' : 'repeat', freq: t.type === 'once' ? 'daily' : t.type, weekday: t.weekday ?? dowOf(this.today()), interval: t.interval || 2 } });
+  }
+  setForm(p) { this.setState(s => ({ form: Object.assign({}, s.form, p) })); }
+  ruleFromForm(f) {
+    const n = Math.max(1, Math.min(365, parseInt(f.interval, 10) || 1));
+    return f.mode === 'once' ? { type: 'once', weekday: f.weekday, interval: n } : { type: f.freq, weekday: f.weekday, interval: n };
+  }
+  saveTask() {
+    const s = this.state, f = s.form, title = f.title.trim();
+    if (!title) { this.titleRef.current && this.titleRef.current.focus(); return; }
+    const r = this.ruleFromForm(f), today = this.today();
+    if (f.editId) {
+      const tasks = s.tasks.map(t => {
+        if (t.id !== f.editId) return t;
+        const changed = t.type !== r.type || (r.type === 'weekly' && t.weekday !== r.weekday) || (r.type === 'interval' && t.interval !== r.interval);
+        return Object.assign({}, t, r, { title, dueDate: changed ? firstDue(r, today) : t.dueDate });
+      });
+      this.setState({ tasks, sheet: null });
+    } else {
+      const t = Object.assign({ id: 't' + s.nextId, title, createdAt: Date.now(), dueDate: firstDue(r, today) }, r);
+      this.setState({ tasks: s.tasks.concat([t]), nextId: s.nextId + 1, sheet: null });
+      if (t.dueDate > today) this.showToast('Geplant ab ' + shortDate(t.dueDate));
+    }
+  }
+  deleteTask() {
+    const id = this.state.form.editId;
+    this.setState(s => ({ tasks: s.tasks.filter(t => t.id !== id), sheet: null }));
+    this.showToast('Aufgabe gelöscht');
+  }
+
+  cycle() { return Math.max(0, this.state.points - this.state.goal.base); }
+  openGoal() {
+    const g = this.state.goal, done = this.cycle() >= g.target;
+    this.setState({ sheet: 'goal', gf: { target: String(g.target), ms: g.milestones.slice(), add: '', err: '', isNew: done } });
+  }
+  setGf(p) { this.setState(s => ({ gf: Object.assign({}, s.gf, { err: '' }, p) })); }
+  gfTarget() { return parseInt(this.state.gf.target, 10) || 0; }
+  addMs() {
+    const gf = this.state.gf, v = parseInt(gf.add, 10), T = this.gfTarget();
+    if (!v || v < 1) return this.setGf({ err: 'Bitte eine Zahl größer als 0 eingeben.' });
+    if (T && v >= T) return this.setGf({ err: 'Zwischenziele müssen kleiner als das Endziel (' + T + ') sein.' });
+    if (gf.ms.includes(v)) return this.setGf({ err: v + ' ist schon eingetragen.' });
+    this.setGf({ ms: gf.ms.concat([v]).sort((a, b) => a - b), add: '' });
+  }
+  saveGoal() {
+    const s = this.state, gf = s.gf, T = this.gfTarget();
+    if (T < 1) return this.setGf({ err: 'Das Endziel muss mindestens 1 Punkt sein.' });
+    const ms = gf.ms.filter(m => m > 0 && m < T).sort((a, b) => a - b);
+    this.setState({ goal: { target: T, milestones: ms, base: gf.isNew ? s.points : s.goal.base }, sheet: null, glassReady: false },
+      () => setTimeout(() => this.setState({ glassReady: true }), 60));
+    this.showToast(gf.isNew ? 'Neues Ziel festgelegt – los geht’s!' : 'Ziele gespeichert');
+  }
+
+  go(tab) {
+    if (tab === 'points') this.setState({ tab, glassReady: false }, () => setTimeout(() => this.setState({ glassReady: true }), 60));
+    else this.setState({ tab });
+  }
+
+  resetAll() {
+    if (!this.state.confirmReset) {
+      this.setState({ confirmReset: true });
+      clearTimeout(this.resetT); this.resetT = setTimeout(() => this.setState({ confirmReset: false }), 3500);
+      return;
+    }
+    this.setState({ tasks: [], archive: [], points: 0, days: {}, dayOffset: 0, nextId: 10, goal: { target: 100, milestones: [25, 50, 75], base: 0 }, confirmReset: false, sheet: null, toast: null });
+    this.showToast('Alle Daten gelöscht');
+  }
+
+  seg(opts, cur, set) {
+    return opts.map(o => {
+      const on = o.v === cur;
+      return { label: o.label, onClick: () => set(o.v), bg: on ? 'var(--surface)' : 'transparent', fg: on ? 'var(--text)' : 'var(--muted)', sh: on ? '0 1px 3px rgba(0,0,0,.12)' : 'none' };
+    });
+  }
+
+  renderVals() {
+    const s = this.state, today = this.today();
+    const narrow = s.vw < 520 || s.vh < 640;
+    const tab = s.tab;
+
+    const open = s.tasks.filter(t => t.dueDate <= today).sort((a, b) => a.createdAt - b.createdAt);
+    const openTasks = open.map(t => {
+      const c = !!s.checking[t.id];
+      const od = t.type === 'once' ? 0 : diffDays(today, t.dueDate);
+      return {
+        title: t.title, rule: ruleLabel(t),
+        hasDue: od > 0, due: od === 1 ? 'seit gestern fällig' : 'seit ' + od + ' Tagen fällig',
+        ring: c ? 'var(--accent)' : 'var(--line2)', fill: c ? 'var(--accent)' : 'transparent',
+        checkOp: c ? 1 : 0, boxScale: c ? 'scale(1.08)' : 'none',
+        opacity: c ? 0.45 : 1, transform: c ? 'translateX(8px)' : 'none', strike: c ? 'line-through' : 'none',
+        onCheck: () => this.check(t.id), onEdit: () => this.openEdit(t)
+      };
+    });
+    const up = s.tasks.filter(t => t.dueDate > today).sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+    const upcoming = up.map(t => {
+      const d = diffDays(t.dueDate, today);
+      return { title: t.title, rule: ruleLabel(t), when: d === 1 ? 'Morgen' : d < 7 ? WDL[dowOf(t.dueDate)] : shortDate(t.dueDate), onEdit: () => this.openEdit(t) };
+    });
+
+    const sorted = s.archive.slice().sort((a, b) => b.completedAt.localeCompare(a.completedAt));
+    const groups = [];
+    sorted.forEach(e => {
+      let g = groups[groups.length - 1];
+      if (!g || g.day !== e.day) {
+        const dd = diffDays(today, e.day);
+        g = { day: e.day, label: dd === 0 ? 'Heute' : dd === 1 ? 'Gestern' : longDate(e.day), items: [] };
+        groups.push(g);
+      }
+      const dt = new Date(e.completedAt);
+      g.items.push({ title: e.title, meta: 'Erledigt ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes()) + ' · ' + ruleLabel(e), border: g.items.length ? '1px solid var(--line)' : 'none', onRestore: () => this.revert(e.id, true) });
+    });
+    groups.forEach(g => g.count = g.items.length);
+
+    const g = s.goal, cycle = this.cycle(), done = cycle >= g.target;
+    const pct = Math.min(100, (cycle / g.target) * 100);
+    const markers = g.milestones.filter(m => m < g.target).map(m => {
+      const r = cycle >= m;
+      return { label: r ? '✓ ' + m : String(m), bottom: (m / g.target * 100) + '%', pillBg: r ? 'var(--gold)' : 'var(--surface2)', pillFg: r ? 'var(--goldInk)' : 'var(--muted)', line: r ? 'var(--gold)' : 'var(--line2)' };
+    });
+    const nextMs = g.milestones.find(m => m > cycle && m < g.target);
+    const statusLine = done ? 'Geschafft! Du hast dein Endziel erreicht.'
+      : 'Noch ' + (g.target - cycle) + ' bis zum Ziel' + (nextMs ? ' · nächstes Zwischenziel ' + nextMs : '');
+
+    let d = today, streak = 0;
+    if (!s.days[d]) d = addDays(d, -1);
+    while (s.days[d]) { streak++; d = addDays(d, -1); }
+    const todayDone = !!s.days[today];
+    const week = [];
+    for (let i = 6; i >= 0; i--) {
+      const k = addDays(today, -i), has = !!s.days[k];
+      week.push({ label: WD[dowOf(k)], bg: has ? 'var(--accent)' : 'var(--surface2)', border: i === 0 && !has ? '2px dashed var(--line2)' : '2px solid transparent', fg: i === 0 ? 'var(--text)' : 'var(--muted)' });
+    }
+    const streakHint = streak === 0 ? 'Erledige heute eine Aufgabe, um einen neuen Streak zu starten.'
+      : todayDone ? 'Stark! Morgen geht’s weiter – lass keinen Tag aus.'
+      : 'Erledige heute noch eine Aufgabe, sonst startet dein Streak wieder bei 0.';
+
+    const f = s.form || { title: '', mode: 'once', freq: 'daily', weekday: 1, interval: 2 };
+    const r = this.ruleFromForm(f);
+    const fd = firstDue(r, today);
+    const previewLine = f.editId ? (r.type === 'once' ? 'Einmalige Aufgabe.' : ruleLabel(r) + ' · erscheint nach dem Abhaken automatisch wieder.')
+      : r.type === 'once' ? 'Erscheint sofort auf dem Startbildschirm.'
+      : (fd === today ? 'Heute fällig' : 'Erstmals fällig am ' + longDate(fd)) + ' · danach ' + ruleLabel(r).toLowerCase().replace('jeden', 'jeden') + '.';
+    const wdOrder = [1, 2, 3, 4, 5, 6, 0];
+    const gf = s.gf || { target: '', ms: [], add: '', err: '' };
+    const toast = s.toast;
+
+    const navC = k => tab === k ? 'var(--text)' : 'var(--muted)';
+    const navB = k => tab === k ? 'var(--surface2)' : 'transparent';
+
+    return {
+      frameW: narrow ? '100vw' : '390px',
+      frameH: narrow ? '100dvh' : Math.min(844, s.vh - 48) + 'px',
+      frameR: narrow ? '0' : '46px',
+      frameShadow: narrow ? 'none' : '0 0 0 10px var(--frame), 0 40px 90px -20px rgba(0,0,0,.35)',
+      navPadBottom: narrow ? 'max(10px, env(safe-area-inset-bottom))' : '14px',
+
+      isTasks: tab === 'tasks', isArchive: tab === 'archive', isPoints: tab === 'points',
+      goTasks: () => this.go('tasks'), goArchive: () => this.go('archive'), goPoints: () => this.go('points'),
+      navTasksFg: navC('tasks'), navTasksBg: navB('tasks'),
+      navArchiveFg: navC('archive'), navArchiveBg: navB('archive'),
+      navPointsFg: navC('points'), navPointsBg: navB('points'),
+
+      todayLong: longDate(today),
+      openCountLabel: open.length === 0 ? 'Keine offenen Aufgaben' : open.length === 1 ? '1 offene Aufgabe' : open.length + ' offene Aufgaben',
+      openTasks, hasOpen: open.length > 0, noOpen: open.length === 0,
+      upcoming, hasUpcoming: up.length > 0, upcomingCount: up.length,
+      showUpcomingList: s.showUpcoming, chevron: s.showUpcoming ? 'rotate(180deg)' : 'none',
+      toggleUpcoming: () => this.setState({ showUpcoming: !s.showUpcoming }),
+      openAdd: () => this.openAdd(),
+      fabBottom: toast ? '170px' : '100px',
+
+      archiveGroups: groups, noArchive: groups.length === 0,
+      archiveCountLabel: s.archive.length === 1 ? '1 erledigt · letzte 30 Tage' : s.archive.length + ' erledigt · letzte 30 Tage',
+
+      cycle, goalTarget: g.target, statusLine, markers, goalDone: done, goalNotDone: !done,
+      totalLabel: g.base > 0 ? 'Insgesamt ' + s.points + ' Punkte gesammelt' : (s.points === 1 ? '1 Punkt gesammelt' : s.points + ' Punkte gesammelt'),
+      bigNumColor: done ? 'var(--gold)' : 'var(--text)',
+      fillH: (s.glassReady ? pct : 0) + '%', hasFill: cycle > 0,
+      liquidColor: done ? 'var(--gold)' : 'var(--liquid)',
+      glassGlow: done ? '0 0 0 4px oklch(0.8 0.14 82 / .25), 0 12px 40px -6px oklch(0.8 0.14 82 / .55)' : 'none',
+      targetPillBg: done ? 'var(--gold)' : 'var(--text)', targetPillFg: done ? 'var(--goldInk)' : 'var(--bg)',
+      openGoal: () => this.openGoal(),
+      streak, streakUnit: streak === 1 ? 'Tag in Folge' : 'Tage in Folge', todayDone, week, streakHint,
+
+      hasToast: !!toast, toastMsg: toast ? toast.msg : '', toastHasUndo: !!(toast && toast.undoId),
+      undo: () => toast && this.revert(toast.undoId, false),
+      toastBar: toast && toast.undoId ? React.createElement('div', { key: toast.key, style: { height: 3, background: 'var(--gold)', transformOrigin: 'left', animation: `shrink ${this.undoMs()}ms linear forwards` } }) : null,
+
+      sheetTask: s.sheet === 'task', sheetGoal: s.sheet === 'goal', sheetSettings: s.sheet === 'settings',
+      closeSheet: () => this.setState({ sheet: null, confirmReset: false }),
+      stop: e => e.stopPropagation(),
+      openSettings: () => this.setState({ sheet: 'settings' }),
+
+      form: f, titleRef: this.titleRef,
+      formHeading: f.editId ? 'Aufgabe bearbeiten' : 'Neue Aufgabe',
+      onTitle: e => this.setForm({ title: e.target.value }),
+      onTitleKey: e => { if (e.key === 'Enter') this.saveTask(); },
+      modeOpts: this.seg([{ v: 'once', label: 'Einmalig' }, { v: 'repeat', label: 'Wiederkehrend' }], f.mode, v => this.setForm({ mode: v })),
+      freqOpts: this.seg([{ v: 'daily', label: 'Täglich' }, { v: 'weekly', label: 'Wöchentlich' }, { v: 'interval', label: 'Alle X Tage' }], f.freq, v => this.setForm({ freq: v })),
+      weekdayOpts: wdOrder.map(w => ({ label: WD[w], onClick: () => this.setForm({ weekday: w }), bg: f.weekday === w ? 'var(--accent)' : 'var(--surface2)', fg: f.weekday === w ? 'var(--onAccent)' : 'var(--text)' })),
+      isRepeat: f.mode === 'repeat', isWeekly: f.mode === 'repeat' && f.freq === 'weekly', isInterval: f.mode === 'repeat' && f.freq === 'interval',
+      onInterval: e => this.setForm({ interval: e.target.value.replace(/[^0-9]/g, '').slice(0, 3) }),
+      intervalDown: () => this.setForm({ interval: Math.max(1, (parseInt(f.interval, 10) || 1) - 1) }),
+      intervalUp: () => this.setForm({ interval: Math.min(365, (parseInt(f.interval, 10) || 0) + 1) }),
+      intervalUnit: r.interval === 1 ? 'Tag' : 'Tage',
+      previewLine, isEdit: !!f.editId,
+      saveLabel: f.editId ? 'Speichern' : 'Hinzufügen',
+      saveOpacity: f.title.trim() ? 1 : 0.4,
+      saveTask: () => this.saveTask(), deleteTask: () => this.deleteTask(),
+
+      gf, goalHeading: gf.isNew ? 'Neues Ziel' : 'Ziele festlegen',
+      goalSaveLabel: gf.isNew ? 'Neues Ziel starten' : 'Ziele speichern',
+      onTarget: e => this.setGf({ target: e.target.value.replace(/[^0-9]/g, '').slice(0, 5) }),
+      targetDown: () => this.setGf({ target: String(Math.max(5, Math.ceil(this.gfTarget() / 5) * 5 - 5)) }),
+      targetUp: () => this.setGf({ target: String(Math.floor(this.gfTarget() / 5) * 5 + 5) }),
+      msChips: gf.ms.map(m => ({ label: String(m), onRemove: () => this.setGf({ ms: gf.ms.filter(x => x !== m) }) })),
+      hasMs: gf.ms.length > 0, noMs: gf.ms.length === 0,
+      onMsInput: e => this.setGf({ add: e.target.value.replace(/[^0-9]/g, '').slice(0, 5) }),
+      onMsKey: e => { if (e.key === 'Enter') this.addMs(); },
+      addMs: () => this.addMs(),
+      evenMs: () => { const T = this.gfTarget(); this.setGf({ ms: [...new Set([0.25, 0.5, 0.75].map(p => Math.round(T * p)).filter(v => v > 0 && v < T))] }); },
+      gfHasErr: !!gf.err, saveGoal: () => this.saveGoal(),
+
+      themeOpts: this.seg([{ v: 'light', label: 'Hell' }, { v: 'dark', label: 'Dunkel' }, { v: 'system', label: 'System' }], s.theme, v => this.setState({ theme: v })),
+      simDate: s.dayOffset ? shortDate(today) + ' (+' + s.dayOffset + ')' : shortDate(today),
+      offsetActive: s.dayOffset > 0,
+      dayForward: () => this.setState({ dayOffset: s.dayOffset + 1 }),
+      dayForward2: () => this.setState({ dayOffset: s.dayOffset + 2 }),
+      dayReset: () => this.setState({ dayOffset: 0 }),
+      resetAll: () => this.resetAll(),
+      resetLabel: s.confirmReset ? 'Wirklich alles löschen? Erneut tippen' : 'Alle Daten löschen'
+    };
+  }
+}
+</script>
+</body>
+</html>
