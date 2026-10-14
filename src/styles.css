@@ -1,0 +1,29 @@
+html,body{margin:0;height:100%;background:var(--page);font-family:'Archivo',system-ui,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box}
+button,input{font-family:inherit}
+:focus{outline:none}:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+::selection{background:color-mix(in srgb,var(--accent) 30%,transparent)}
+a{color:var(--accent);text-underline-offset:3px}a:hover{color:var(--accentText)}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes shrink{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes rowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Interaction states (inline styles carry the base look, so these must win) */
+.h-hover:hover{background:var(--hover)!important}
+.h-press:active{background:var(--press)!important}
+.h-accent:hover{background:var(--accentHover)!important}
+.h-accent:active{background:var(--accentPress)!important}
+.h-tint:hover{background:var(--accentTint)!important}
+.h-border:hover{border-color:var(--accent)!important}
+.f-accent:focus{border-color:var(--accent)!important}
+
+/* Recurring text styles */
+.label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.eyebrow{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.h1{margin:6px 0 0;font-size:42px;line-height:1.05;font-weight:800;letter-spacing:-0.025em}
+.section{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
