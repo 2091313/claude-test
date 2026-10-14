@@ -30,7 +30,8 @@ Der Produktions-Build ist eine installierbare PWA: Ein Service Worker (`sw/sw.js
 mit allen Dateien des Builds) speichert die App beim ersten Aufruf, danach startet sie auch ohne Netz.
 Nach einem neuen Deployment lädt sie die neue Version im Hintergrund; sie ist beim nächsten Öffnen aktiv.
 
-1. `npm run build` und den Ordner `dist/` per **HTTPS** hosten (z. B. GitHub Pages, Netlify; Service Worker brauchen HTTPS).
+1. Jeder Push auf `main` baut und veröffentlicht die App per GitHub Actions (`.github/workflows/pages.yml`) unter
+   https://2091313.github.io/claude-test/ (einmalig nötig: Settings → Pages → Source „GitHub Actions“).
 2. Seite auf dem Handy einmal öffnen.
 3. Android/Chrome: Menü → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“.
    iPhone/Safari: Teilen → „Zum Home-Bildschirm“.
