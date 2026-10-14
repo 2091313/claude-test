@@ -38,6 +38,8 @@ export interface ArchiveEntry {
 export interface Goal {
   target: number;
   milestones: number[];
+  /** Optional reward per goal, keyed by its point value (milestones and the target). */
+  names?: Record<string, string>;
   /** Total points at the moment this goal was started. */
   base: number;
 }
@@ -58,7 +60,10 @@ export interface Data {
 export const KEY = 'taskmanager-v1';
 export const UNDO_MS = 3000;
 export const ARCHIVE_DAYS = 30;
-export const DEFAULT_GOAL: Goal = { target: 100, milestones: [25, 50, 75], base: 0 };
+export const DEFAULT_GOAL: Goal = { target: 100, milestones: [25, 50, 75], base: 0, names: {} };
+export const MAX_NAME = 40;
+
+export const rewardOf = (g: Goal, points: number) => g.names?.[points] || '';
 
 export function defaults(): Data {
   const t = ymd(new Date()), dow = new Date().getDay();

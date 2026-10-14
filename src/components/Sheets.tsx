@@ -1,5 +1,5 @@
 import type { RefObject } from 'react';
-import type { Theme } from '../lib/model';
+import { MAX_NAME, type Theme } from '../lib/model';
 import { firstDue, longDate, shortDate, WD } from '../lib/dates';
 import { ruleFromForm, type GoalForm, type TaskForm } from '../lib/actions';
 import { field, IconArrow, IconClose, Seg, Sheet } from './ui';
@@ -8,6 +8,7 @@ const digits = (v: string, max: number) => v.replace(/[^0-9]/g, '').slice(0, max
 const primaryBtn = { height: 58, border: 'none', background: 'var(--accent)', color: 'var(--accentInk)', fontSize: 17, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 18px', textAlign: 'left' } as const;
 const stepBtn = (size: number) => ({ width: size, height: size, flex: 'none', border: 'none', background: 'var(--surface)', color: 'var(--text)', fontSize: 24, cursor: 'pointer' }) as const;
 const WD_ORDER = [1, 2, 3, 4, 5, 6, 0];
+const nameInput = { height: 52, width: '100%', padding: '0 14px', background: 'var(--surface)', color: 'var(--text)', caretColor: 'var(--accent)', fontSize: 16, fontWeight: 500, outline: 'none' } as const;
 
 export function TaskSheet({ form: f, today, padBottom, titleRef, onChange, onSave, onDelete, onClose }: {
   form: TaskForm; today: string; padBottom: string; titleRef: RefObject<HTMLInputElement>;
@@ -100,6 +101,8 @@ export function GoalSheet({ gf, padBottom, onChange, onAdd, onSave, onClose }: {
             <button onClick={() => onChange({ target: String(Math.floor(T / 5) * 5 + 5) })} aria-label="Plus 5" className="h-hover" style={stepBtn(60)}>+</button>
           </div>
           <span style={{ fontSize: 13, color: 'var(--muted)' }}>Punkte · ± in Schritten von 5</span>
+          <input value={gf.targetName} onChange={e => onChange({ targetName: e.target.value })} maxLength={MAX_NAME} placeholder="Belohnung fürs volle Glas (optional)" aria-label="Belohnung fürs Endziel" className="f-accent"
+            style={{ ...nameInput, height: 52, marginTop: 4, border: '2px solid var(--divider)' }} />
         </div>
 
         <div style={field(10)}>
@@ -109,12 +112,17 @@ export function GoalSheet({ gf, padBottom, onChange, onAdd, onSave, onClose }: {
               style={{ height: 36, padding: '0 6px', border: 'none', background: 'none', color: 'var(--accentText)', fontSize: 13.5, fontWeight: 800, cursor: 'pointer' }}>¼ · ½ · ¾ setzen</button>
           </div>
           {gf.ms.length > 0 ? (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {gf.ms.map(m => (
-                <button key={m} onClick={() => onChange({ ms: gf.ms.filter(x => x !== m) })} aria-label={`${m} entfernen`} className="h-border"
-                  style={{ height: 44, padding: '0 10px 0 14px', border: '2px solid var(--divider)', background: 'var(--surface)', color: 'var(--text)', fontSize: 16, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-                  {m}<IconClose size={14} />
-                </button>
+            <div style={{ display: 'flex', flexDirection: 'column', border: '2px solid var(--divider)' }}>
+              {gf.ms.map((m, i) => (
+                <div key={m} style={{ display: 'flex', alignItems: 'stretch', height: 52, borderTop: i ? '1px solid var(--divider)' : 'none' }}>
+                  <span style={{ width: 64, flex: 'none', display: 'flex', alignItems: 'center', padding: '0 14px', background: 'var(--surface)', borderRight: '1px solid var(--divider)', fontSize: 16, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{m}</span>
+                  <input value={gf.names[m] || ''} onChange={e => onChange({ names: { ...gf.names, [m]: e.target.value } })} maxLength={MAX_NAME} placeholder="Belohnung (optional)" aria-label={`Belohnung für ${m} Punkte`}
+                    style={{ ...nameInput, flex: 1, minWidth: 0, border: 'none' }} />
+                  <button onClick={() => onChange({ ms: gf.ms.filter(x => x !== m) })} aria-label={`${m} entfernen`} className="h-hover"
+                    style={{ width: 48, flex: 'none', border: 'none', borderLeft: '1px solid var(--divider)', background: 'transparent', color: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                    <IconClose size={14} />
+                  </button>
+                </div>
               ))}
             </div>
           ) : (
@@ -122,7 +130,9 @@ export function GoalSheet({ gf, padBottom, onChange, onAdd, onSave, onClose }: {
           )}
           <div style={{ display: 'flex', border: '2px solid var(--divider)' }}>
             <input type="number" inputMode="numeric" min={1} value={gf.add} onChange={e => onChange({ add: digits(e.target.value, 5) })} onKeyDown={e => { if (e.key === 'Enter') onAdd(); }} placeholder="z. B. 40" aria-label="Zwischenziel"
-              style={{ flex: 1, minWidth: 0, height: 52, padding: '0 14px', border: 'none', background: 'var(--surface)', color: 'var(--text)', fontSize: 17, fontWeight: 600, outline: 'none' }} />
+              style={{ width: 92, flex: 'none', height: 52, padding: '0 14px', border: 'none', borderRight: '1px solid var(--divider)', background: 'var(--surface)', color: 'var(--text)', fontSize: 17, fontWeight: 600, outline: 'none' }} />
+            <input value={gf.addName} onChange={e => onChange({ addName: e.target.value })} onKeyDown={e => { if (e.key === 'Enter') onAdd(); }} maxLength={MAX_NAME} placeholder="Belohnung" aria-label="Belohnung für neues Zwischenziel"
+              style={{ ...nameInput, flex: 1, minWidth: 0, border: 'none' }} />
             <button onClick={onAdd} style={{ flex: 'none', height: 52, padding: '0 16px', border: 'none', background: 'var(--text)', color: 'var(--bg)', fontSize: 15, fontWeight: 800, cursor: 'pointer', textAlign: 'left' }}>Hinzufügen</button>
           </div>
           {gf.err && <span role="alert" style={{ fontSize: 14, color: 'var(--accentText)', fontWeight: 600 }}>{gf.err}</span>}

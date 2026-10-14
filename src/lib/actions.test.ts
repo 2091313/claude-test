@@ -4,6 +4,7 @@ import { firstDue, nextDue, streakOf } from './dates';
 import type { Data, Task } from './model';
 
 const T = '2026-10-13'; // a Tuesday
+const gf = { target: '100', ms: [] as number[], add: '', err: '', isNew: false, names: {}, targetName: '', addName: '' };
 const at = (day: string, h = 12) => new Date(day + 'T' + String(h).padStart(2, '0') + ':00:00');
 const task = (p: Partial<Task>): Task => ({ id: 't1', title: 'X', createdAt: 1, dueDate: T, type: 'once', weekday: 2, interval: 2, ...p });
 const data = (p: Partial<Data> = {}): Data => ({
@@ -82,8 +83,18 @@ describe('forms', () => {
     expect(saveTask(data(), newForm(T), T)).toBeNull();
   });
   it('starts a new goal cycle from the current points', () => {
-    const r = saveGoal(data({ points: 100 }), { target: '50', ms: [10, 60], add: '20', err: '', isNew: true }) as Data;
-    expect(r.goal).toEqual({ target: 50, milestones: [10, 20], base: 100 });
-    expect(saveGoal(data(), { target: '0', ms: [], add: '', err: '', isNew: false })).toBeTypeOf('string');
+    const r = saveGoal(data({ points: 100 }), { ...gf, target: '50', ms: [10, 60], add: '20', isNew: true }) as Data;
+    expect(r.goal).toEqual({ target: 50, milestones: [10, 20], base: 100, names: {} });
+    expect(saveGoal(data(), { ...gf, target: '0' })).toBeTypeOf('string');
+  });
+  it('stores trimmed reward names for milestones and the target only', () => {
+    const r = saveGoal(data(), { ...gf, ms: [25, 50], names: { 25: ' Kino ', 50: '  ', 75: 'weg' }, targetName: 'Wochenende am See', add: '60', addName: 'Pizza' }) as Data;
+    expect(r.goal.names).toEqual({ 25: 'Kino', 60: 'Pizza', 100: 'Wochenende am See' });
+  });
+  it('names the reward when a goal is reached', () => {
+    const goal = { target: 100, milestones: [25], base: 0, names: { 25: 'Kino', 100: 'Urlaub' } };
+    const d = data({ tasks: [task({})], points: 24, goal });
+    expect(complete(d, 't1', at(T))!.msg).toBe('Zwischenziel 25 erreicht! Belohnung: Kino');
+    expect(complete({ ...d, points: 99 }, 't1', at(T))!.msg).toBe('Endziel erreicht – das Glas ist voll! Belohnung: Urlaub');
   });
 });

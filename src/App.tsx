@@ -136,7 +136,10 @@ export function App() {
 
   const openGoal = () => {
     const d = dataRef.current, g = d.goal;
-    setGfState({ target: String(g.target), ms: g.milestones.slice(), add: '', err: '', isNew: A.cycleOf(d) >= g.target });
+    const names = { ...g.names };
+    const targetName = names[g.target] || '';
+    delete names[g.target];
+    setGfState({ target: String(g.target), ms: g.milestones.slice(), add: '', err: '', isNew: A.cycleOf(d) >= g.target, names, targetName, addName: '' });
     setSheet('goal');
   };
   const setGf = (p: Partial<A.GoalForm>) => setGfState(g => g && { ...g, err: '', ...p });
@@ -146,7 +149,7 @@ export function App() {
     if (!v || v < 1) return setGf({ err: 'Bitte eine Zahl größer als 0 eingeben.' });
     if (T && v >= T) return setGf({ err: 'Zwischenziele müssen kleiner als das Endziel (' + T + ') sein.' });
     if (gf.ms.includes(v)) return setGf({ err: v + ' ist schon eingetragen.' });
-    setGf({ ms: gf.ms.concat([v]).sort((a, b) => a - b), add: '' });
+    setGf({ ms: gf.ms.concat([v]).sort((a, b) => a - b), add: '', addName: '', names: { ...gf.names, [v]: gf.addName } });
   };
   const saveGoal = () => {
     if (!gf) return;
@@ -167,7 +170,7 @@ export function App() {
       resetT.current = window.setTimeout(() => setConfirmReset(false), 3500);
       return;
     }
-    setData({ ...dataRef.current, tasks: [], archive: [], points: 0, days: {}, dayOffset: 0, nextId: 10, goal: { ...DEFAULT_GOAL } });
+    setData({ ...dataRef.current, tasks: [], archive: [], points: 0, days: {}, dayOffset: 0, nextId: 10, goal: { ...DEFAULT_GOAL, names: {} } });
     setConfirmReset(false);
     setSheet(null);
     showToast('Alle Daten gelöscht');

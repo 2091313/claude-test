@@ -1,4 +1,4 @@
-import { ARCHIVE_DAYS, type ArchiveEntry, type Data, type Rule, type RuleType, type Task } from './model';
+import { ARCHIVE_DAYS, MAX_NAME, rewardOf, type ArchiveEntry, type Data, type Rule, type RuleType, type Task } from './model';
 import { addDays, diffDays, dowOf, firstDue, nextDue, whenLabel, ymd } from './dates';
 
 export interface TaskForm {
@@ -16,6 +16,10 @@ export interface GoalForm {
   target: string;
   ms: number[];
   add: string;
+  /** Reward names by point value, as typed (incl. the target under its current value). */
+  names: Record<string, string>;
+  targetName: string;
+  addName: string;
   err: string;
   /** True when the current goal is reached and saving starts a new cycle. */
   isNew: boolean;
@@ -44,10 +48,11 @@ export function complete(d: Data, id: string, now: Date): { data: Data; msg: str
   const days = { ...d.days, [today]: (d.days[today] || 0) + 1 };
   const before = d.points - d.goal.base, after = before + 1;
   let msg = 'Erledigt · +1 Punkt';
-  if (before < d.goal.target && after >= d.goal.target) msg = 'Endziel erreicht – das Glas ist voll!';
+  const reward = (p: number) => rewardOf(d.goal, p) ? ' Belohnung: ' + rewardOf(d.goal, p) : '';
+  if (before < d.goal.target && after >= d.goal.target) msg = 'Endziel erreicht – das Glas ist voll!' + reward(d.goal.target);
   else {
     const m = d.goal.milestones.find(m => before < m && after >= m);
-    if (m) msg = 'Zwischenziel ' + m + ' erreicht!';
+    if (m) msg = 'Zwischenziel ' + m + ' erreicht!' + reward(m);
   }
   if (task.type !== 'once' && msg === 'Erledigt · +1 Punkt') msg = 'Erledigt · +1 · wieder ' + whenLabel(nextDue(task, today), today).replace('Morgen', 'morgen');
   return {
@@ -129,7 +134,14 @@ export function saveGoal(d: Data, gf: GoalForm): Data | string {
   if (T < 1) return 'Das Endziel muss mindestens 1 Punkt sein.';
   const pending = parseInt(gf.add, 10);
   let ms = gf.ms.slice();
-  if (pending > 0 && pending < T && !ms.includes(pending)) ms.push(pending);
+  const typed: Record<string, string> = { ...gf.names };
+  if (pending > 0 && pending < T && !ms.includes(pending)) { ms.push(pending); typed[pending] = gf.addName; }
   ms = ms.filter(m => m > 0 && m < T).sort((a, b) => a - b);
-  return { ...d, goal: { target: T, milestones: ms, base: gf.isNew ? d.points : d.goal.base } };
+  typed[T] = gf.targetName;
+  const names: Record<string, string> = {};
+  for (const p of [...ms, T]) {
+    const n = (typed[p] || '').trim().slice(0, MAX_NAME);
+    if (n) names[p] = n;
+  }
+  return { ...d, goal: { target: T, milestones: ms, base: gf.isNew ? d.points : d.goal.base, names } };
 }

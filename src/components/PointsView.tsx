@@ -1,4 +1,4 @@
-import type { Data } from '../lib/model';
+import { rewardOf, type Data } from '../lib/model';
 import { addDays, dowOf, streakOf, WD } from '../lib/dates';
 import { cycleOf } from '../lib/actions';
 import { IconArrow } from './ui';
@@ -31,6 +31,7 @@ export function PointsView({ data: s, today, glassReady, onOpenGoal }: Props) {
     { label: 'Fortschritt', value: Math.floor(pct) + ' %' }
   ];
   const liquid = done ? 'var(--gold)' : 'var(--accent)';
+  const rewards = [...ms, g.target].filter(p => rewardOf(g, p)).map(p => ({ p, name: rewardOf(g, p), final: p === g.target, reached: cycle >= p }));
 
   const streak = streakOf(s.days, today);
   const todayDone = !!s.days[today];
@@ -96,6 +97,28 @@ export function PointsView({ data: s, today, glassReady, onOpenGoal }: Props) {
           )}
         </div>
       </div>
+
+      {rewards.length > 0 && (
+        <div style={{ padding: '24px 20px 0', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <span className="section">Belohnungen</span>
+          <div style={{ display: 'flex', flexDirection: 'column', border: '2px solid var(--divider)' }}>
+            {rewards.map((r, i) => (
+              <div key={r.p} style={{ display: 'flex', alignItems: 'stretch', minHeight: 60, borderTop: i ? '1px solid var(--divider)' : 'none' }}>
+                <span style={{ width: 64, flex: 'none', display: 'flex', alignItems: 'center', padding: '0 14px', borderRight: '1px solid var(--divider)', fontSize: 16, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: r.reached ? 'var(--text)' : 'var(--muted)' }}>{r.p}</span>
+                <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 2, padding: '10px 12px 10px 14px' }}>
+                  <span style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.3, overflowWrap: 'anywhere' }}>{r.name}</span>
+                  <span style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>{r.final ? 'Endziel' : 'Zwischenziel'}</span>
+                </span>
+                <span style={{ flex: 'none', display: 'flex', alignItems: 'center', paddingRight: 12 }}>
+                  {r.reached
+                    ? <span style={{ ...pill, background: 'var(--gold)', color: 'var(--goldInk)' }}>✓ Geschafft</span>
+                    : <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--muted)', whiteSpace: 'nowrap' }}>noch {r.p - cycle}</span>}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div style={{ padding: '24px 20px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
